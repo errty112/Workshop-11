@@ -1,5 +1,5 @@
 // COMP30019 - Graphics and Interaction
-// (c) University of Melbourne, 2022
+// (c) University of Melbourne, 2023
 
 using System.Collections;
 using UnityEngine;
@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public const string GameSceneName = "GameScene";
     
     private int _score;
+    private float _gameTime;
 
     public UnityEvent<int> OnScoreChanged { get; } = new();
     public int Score
@@ -25,6 +26,12 @@ public class GameManager : MonoBehaviour
             this._score = value;
             OnScoreChanged.Invoke(this._score);
         }
+    }
+
+    public float GameTime
+    {
+        get => this._gameTime;
+        private set => this._gameTime = value;
     }
 
     private void Awake()
@@ -44,11 +51,18 @@ public class GameManager : MonoBehaviour
         // Init global game state values and/or set defaults.
         Score = 0;
     }
+
+    private void Update()
+    {
+        // Update game time if we're in the game scene.
+        if (SceneManager.GetActiveScene().name == GameSceneName)
+            this._gameTime += Time.deltaTime;
+    }
     
     public IEnumerator GotoScene(string sceneName, float delay)
     {
         yield return new WaitForSeconds(delay);
-        
+
         var asyncLoadOp = SceneManager.LoadSceneAsync(sceneName);
         while (!asyncLoadOp.isDone)
         {
@@ -59,6 +73,9 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name == GameSceneName)
+        {
             Score = 0; // Reset score upon game start
+            GameTime = 0.0f; // Also reset game time upon game start
+        }
     }
 }
